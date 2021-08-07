@@ -1,0 +1,2 @@
+defmodule HonuWeb do
+end

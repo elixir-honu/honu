@@ -2,7 +2,7 @@
 
 https://en.wikipedia.org/wiki/Green_sea_turtle#Taxonomy
 
-**TODO: Add description**
+**A WIP file upload and attachment library for Ecto**
 
 ## Installation
 

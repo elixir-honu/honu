@@ -32,7 +32,8 @@ defmodule Honu.MixProject do
     [
       {:ecto, "~> 3.0"},
       # Web
-      {:plug, "~> 1.12"}
+      {:plug, "~> 1.12"},
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
     ]
   end
 

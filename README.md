@@ -16,7 +16,7 @@ def deps do
 end
 ```
 
-## Setps
+## Steps
 
 ```bash
 mkdir storage

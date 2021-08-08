@@ -38,7 +38,7 @@ defmodule Honu.Attachments do
   end
 
   # Only replace
-  def update_record_with_attachment({record, changeset_func}, attrs, _attachments_names)
+  def update_record_with_attachment({record, changeset_func}, attrs, attachments_names)
       when is_function(changeset_func, 2) do
     mark_attachments_for_deletion(record, attachments_names)
     |> Multi.prepend(Multi.update(Multi.new(), :record, changeset_func.(record, attrs)))

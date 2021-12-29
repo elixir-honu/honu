@@ -35,16 +35,25 @@ defmodule Honu.Migration do
         add(:name, :string, null: false)
 
         add(
-          :record_id,
-          references(record_table, column: :id, type: :binary_id, on_delete: :delete_all)
-        )
-
-        add(
           :blob_id,
           references(:honu_blobs, column: :id, type: :binary_id, on_delete: :delete_all)
         )
 
-        timestamps(updated_at: false)
+        case module.__schema__(:type, :id) do
+          :id ->
+            add(:record_id, references(record_table, column: :id, on_delete: :delete_all))
+
+          :binary_id ->
+            add(
+              :record_id,
+              references(record_table, column: :id, type: :binary_id, on_delete: :delete_all)
+            )
+
+          pk ->
+            raise "Primary key #{pk} not supported."
+        end
+
+        timestamps()
       end
 
       create(unique_index(table_name, [:name, :record_id, :blob_id]))

@@ -9,7 +9,7 @@ defmodule Honu.MixProject do
       app: :honu,
       version: @version,
       elixir: "~> 1.12",
-      build_embedded: Mix.env == :prod,
+      build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -33,7 +33,7 @@ defmodule Honu.MixProject do
       {:ecto, "~> 3.0"},
       # Web
       {:plug, "~> 1.12"},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
     ]
   end
 

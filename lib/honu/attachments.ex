@@ -30,6 +30,16 @@ defmodule Honu.Attachments do
     |> Base.encode16(case: :lower)
   end
 
+  def attachments_names(attrs, attachments_func)
+      when is_map(attrs) and is_function(attachments_func, 0) do
+    Enum.filter(attachments_func.(), fn x -> (attrs[x] || attrs[Atom.to_string(x)]) != nil end)
+  end
+
+  def attachments_names(attrs, attachments_list)
+      when is_map(attrs) and is_list(attachments_list) do
+    Enum.filter(attachments_list, fn x -> (attrs[x] || attrs[Atom.to_string(x)]) != nil end)
+  end
+
   def create_record_with_attachment({record, changeset_func}, attrs, attachments_names)
       when is_function(changeset_func, 2) do
     Multi.new()
@@ -37,10 +47,16 @@ defmodule Honu.Attachments do
     |> upload_blobs(attachments_names)
   end
 
-  # Only replace
+  # TODO: Decide on update_record_with_attachment behaviour
+  #       Only replace mode
+  #       Remove given and append new ones
+  #       If only append, give empty list ([])
+  #
+  #       For has_one, it is necessary to replace
   def update_record_with_attachment({record, changeset_func}, attrs, attachments_names)
       when is_function(changeset_func, 2) do
-    mark_attachments_for_deletion(record, attachments_names)
+    # mark_attachments_for_deletion(record, attachments_names)
+    Multi.new()
     |> Multi.prepend(Multi.update(Multi.new(), :record, changeset_func.(record, attrs)))
     |> upload_blobs(attachments_names)
   end

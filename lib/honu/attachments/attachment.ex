@@ -14,7 +14,6 @@ defmodule Honu.Attachments.Attachment do
   defp attachment_changeset(changeset, attrs, {attachment_name, changeset_func})
        when is_function(changeset_func, 2) do
     if upload = attrs[attachment_name] do
-      # uploads = [upload] |> List.flatten()
       attachments = attachments_attrs(attachment_name, upload)
 
       changeset
@@ -32,11 +31,12 @@ defmodule Honu.Attachments.Attachment do
     end)
   end
 
-  defp attachments_attrs(attachment_name, attachments) when is_map(attachments) do
-    Enum.reduce(Map.keys(attachments), %{}, fn key, m ->
-      # upload :: Plug.Upload.t() | map()
-      upload = attachments[key]
-      Map.merge(m, %{key => AttachmentMap.build(upload, attachment_name)})
-    end)
+  defp attachments_attrs(attachment_name, attachment) when is_map(attachment) do
+    AttachmentMap.build(attachment, attachment_name)
+    # Enum.reduce(Map.keys(attachments), %{}, fn key, m ->
+    #  # upload :: Plug.Upload.t() | map()
+    #  upload = attachments[key]
+    #  Map.merge(m, %{key => AttachmentMap.build(upload, attachment_name)})
+    # end)
   end
 end

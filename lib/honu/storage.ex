@@ -6,7 +6,7 @@ defmodule Honu.Storage do
   @callback read(Blob.t(), [option]) :: {:ok, binary()} | {:error, String.t()}
   @callback put(Blob.t(), [option]) :: {:ok, Blob.t()} | {:error, String.t()}
   @callback delete(Blob.t(), [option]) :: :ok | {:error, String.t()}
-  @callback exists?(String.t(), [option]) :: true | false
+  @callback exists?(Blob.t() | String.t(), [option]) :: true | false
 
   def config(key, opts \\ []) do
     Application.fetch_env!(:honu, __MODULE__)

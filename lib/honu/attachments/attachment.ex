@@ -1,7 +1,9 @@
 defmodule Honu.Attachments.Attachment do
   import Ecto.Changeset
+  import Ecto.Query, warn: false
 
   alias Honu.Attachments.AttachmentMap
+  alias Honu.Attachments.Blob
 
   def attachments_changeset(changeset, attrs, attachments_names) do
     # TODO: Support both atom and string in map
@@ -14,29 +16,34 @@ defmodule Honu.Attachments.Attachment do
   defp attachment_changeset(changeset, attrs, {attachment_name, changeset_func})
        when is_function(changeset_func, 2) do
     if upload = attrs[attachment_name] do
-      attachments = attachments_attrs(attachment_name, upload)
+      attachments = AttachmentMap.build(upload, attachment_name)
 
       changeset
       |> cast(Map.put(attrs, attachment_name, attachments), [])
       |> cast_assoc(String.to_atom(attachment_name), with: changeset_func)
+      |> prepare_changes(fn changeset ->
+        blob_ids = get_blob_ids(changeset, String.to_atom(attachment_name))
+        query = from(b in Blob, where: b.id in ^blob_ids)
+        changeset.repo.update_all(query, set: [deleted_at: NaiveDateTime.utc_now()])
+
+        changeset
+      end)
     else
       changeset
     end
   end
 
-  defp attachments_attrs(attachment_name, attachments) when is_list(attachments) do
-    Enum.reduce(attachments, [], fn upload, l ->
-      # upload :: Plug.Upload.t() | map()
-      [AttachmentMap.build(upload, attachment_name) | l]
-    end)
-  end
-
-  defp attachments_attrs(attachment_name, attachment) when is_map(attachment) do
-    AttachmentMap.build(attachment, attachment_name)
-    # Enum.reduce(Map.keys(attachments), %{}, fn key, m ->
-    #  # upload :: Plug.Upload.t() | map()
-    #  upload = attachments[key]
-    #  Map.merge(m, %{key => AttachmentMap.build(upload, attachment_name)})
-    # end)
+  defp get_blob_ids(changeset, attachment_name) do
+    case get_change(changeset, attachment_name) do
+      changes when is_list(changes) ->
+        changes
+        |> Enum.map(&(&1.data.blob_id))
+        |> Enum.reject(&is_nil/1)
+      _change ->
+        changeset.data
+        |> Map.get(attachment_name)
+        |> Map.get(:blob_id)
+        |> then(&[&1])
+    end
   end
 end

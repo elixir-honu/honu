@@ -32,7 +32,7 @@ defmodule Honu.Attachments do
 
   def attachments_names(attrs, attachments_func)
       when is_map(attrs) and is_function(attachments_func, 0) do
-    Enum.filter(attachments_func.(), fn x -> (attrs[x] || attrs[Atom.to_string(x)]) != nil end)
+    attachments_names(attrs, attachments_func.())
   end
 
   def attachments_names(attrs, attachments_list)
@@ -47,15 +47,8 @@ defmodule Honu.Attachments do
     |> upload_blobs(attachments_names)
   end
 
-  # TODO: Decide on update_record_with_attachment behaviour
-  #       Only replace mode
-  #       Remove given and append new ones
-  #       If only append, give empty list ([])
-  #
-  #       For has_one, it is necessary to replace
   def update_record_with_attachment({record, changeset_func}, attrs, attachments_names)
       when is_function(changeset_func, 2) do
-    # mark_attachments_for_deletion(record, attachments_names)
     Multi.new()
     |> Multi.prepend(Multi.update(Multi.new(), :record, changeset_func.(record, attrs)))
     |> upload_blobs(attachments_names)
@@ -72,8 +65,8 @@ defmodule Honu.Attachments do
       #       deleting all
       Enum.map(attachments_names, fn attachment_name ->
         case Map.get(record, attachment_name) do
-          att when is_list(att) -> Enum.map(att, fn x -> Storage.config(:storage).put(x.blob) end)
-          att -> Storage.config(:storage).put(att.blob)
+          att when is_list(att) -> Enum.map(att, &maybe_put_blob/1)
+          att -> maybe_put_blob(att)
         end
       end)
       |> List.flatten()
@@ -95,6 +88,15 @@ defmodule Honu.Attachments do
             end
           end).()
     end)
+  end
+
+  # This is an update.
+  defp maybe_put_blob(%{blob: %Blob{path: nil}} = attachment) do
+    {:ok, attachment.blob}
+  end
+
+  defp maybe_put_blob(%{blob: %Blob{}} = attachment) do
+    Storage.config(:storage).put(attachment.blob)
   end
 
   defp mark_attachments_for_deletion(record, attachments_names) do

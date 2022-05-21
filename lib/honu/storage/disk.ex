@@ -41,7 +41,15 @@ defmodule Honu.Storage.Disk do
   end
 
   @impl true
-  def exists?(key, opts \\ []) do
+  def exists?(blob_or_key, opts \\ [])
+
+  @impl true
+  def exists?(blob = %Blob{}, opts) do
+    exists?(blob.key, opts)
+  end
+
+  @impl true
+  def exists?(key, opts) when is_binary(key) do
     File.exists?(path_for(key, opts))
   end
 

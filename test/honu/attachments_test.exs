@@ -51,6 +51,30 @@ defmodule Honu.AttachmentsTest do
       assert_blob user.avatar.blob
     end
 
+    test "create_record_with_attachment/3 with has_many and file map" do
+      attrs = %{
+        "username" => "username",
+        "documents" => [
+          %{"file" => "test/support/images/elixir.png"},
+          %{"file" => "test/support/images/elixir.png"}
+        ]
+      }
+
+      result = Attachments.create_record_with_attachment(
+        {%User{}, &User.changeset_with_attachments/2},
+        attrs,
+        Attachments.attachments_names(attrs, User.attachments())
+      )
+      |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      assert user.username == "username"
+      assert length(user.documents) == 2
+      for document <- user.documents do
+        assert_blob document.blob
+      end
+    end
+
     test "create_record_with_attachment/3 with has_many and Plug.Upload" do
       attrs = %{
         "username" => "username",
@@ -77,6 +101,7 @@ defmodule Honu.AttachmentsTest do
 
       assert {:ok, %{record: %User{} = user}} = result
       assert user.username == "username"
+      assert length(user.documents) == 2
       for document <- user.documents do
         assert_blob document.blob
       end
@@ -114,6 +139,7 @@ defmodule Honu.AttachmentsTest do
 
       assert {:ok, %{record: %Book{} = book}} = result
       assert book.title == "title"
+      assert length(book.pages) == 2
       for page <- book.pages do
         assert_blob page.blob
       end

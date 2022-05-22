@@ -12,12 +12,8 @@ end
 defimpl Honu.Attachments.AttachmentMap, for: List do
   def build(struct, attachment_name) do
     Enum.reduce(struct, [], fn attachment, l ->
-      [build_plug_upload(attachment, attachment_name) | l]
+      [@protocol.build(attachment, attachment_name) | l]
     end)
-  end
-
-  defp build_plug_upload(struct, attachment_name) do
-    %{"name" => attachment_name, "blob" => Honu.Attachments.Blob.build(struct)}
   end
 end
 
@@ -44,7 +40,7 @@ defimpl Honu.Attachments.AttachmentMap, for: Map do
 
   defp build_one_with_index({id, attrs}, attachment_name) when is_map(attrs) do
     attrs
-    |> __MODULE__.build(attachment_name)
+    |> @protocol.build(attachment_name)
     |> then(&Map.put(%{}, id, &1))
   end
 end

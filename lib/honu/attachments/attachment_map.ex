@@ -24,6 +24,7 @@ defimpl Honu.Attachments.AttachmentMap, for: Map do
       "blob" => Honu.Attachments.Blob.build(file)
     }
     |> Map.merge(Map.delete(attrs, "file"))
+    |> Map.delete("id")
   end
 
   def build(%{"0" => map} = attrs, attachment_name) when is_map(map) do

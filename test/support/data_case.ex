@@ -31,5 +31,17 @@ defmodule HonuTest.DataCase do
     blob.key
     |> Honu.Attachments.get_attachment_by_key!(HonuTest.Repo)
     |> Honu.Storage.config(:storage).exists?()
+    |> assert()
+  end
+
+  @doc """
+  A helper that checks the Blob was marked for deletion.
+  """
+  def refute_blob(blob) do
+    blob.key
+    |> Honu.Attachments.get_attachment_by_key!(HonuTest.Repo)
+    |> Map.get(:deleted_at)
+    |> then(&is_nil(&1))
+    |> refute()
   end
 end

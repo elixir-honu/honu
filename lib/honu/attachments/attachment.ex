@@ -37,8 +37,8 @@ defmodule Honu.Attachments.Attachment do
     case get_change(changeset, attachment_name) do
       changes when is_list(changes) ->
         changes
+        |> Enum.filter(&(&1.action == :replace))
         |> Enum.map(&(&1.data.blob_id))
-        |> Enum.reject(&is_nil/1)
       _change ->
         changeset.data
         |> Map.get(attachment_name)

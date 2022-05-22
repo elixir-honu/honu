@@ -2,21 +2,16 @@ defmodule HonuTest.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  use Honu.Schema
+
   alias HonuTest.UserAttachment
   alias Honu.Attachments.Attachment
 
   schema "users" do
     field :username, :string
 
-    has_one :avatar, UserAttachment,
-      foreign_key: :record_id,
-      where: [name: "avatar"],
-      on_replace: :delete_if_exists
-
-    has_many :documents, UserAttachment,
-      foreign_key: :record_id,
-      where: [name: "documents"],
-      on_replace: :delete_if_exists
+    has_one_attached :avatar, UserAttachment
+    has_many_attached :documents, UserAttachment
 
     timestamps()
   end

@@ -2,16 +2,15 @@ defmodule HonuTest.Book do
   use Ecto.Schema
   import Ecto.Changeset
 
+  use Honu.Schema
+
   alias HonuTest.BookAttachment
   alias Honu.Attachments.Attachment
 
   schema "books" do
     field :title, :string
 
-    has_many :pages, BookAttachment,
-      foreign_key: :record_id,
-      where: [name: "pages"],
-      on_replace: :delete_if_exists,
+    has_many_attached :pages, BookAttachment,
       preload_order: [asc: :page_number]
 
     timestamps()

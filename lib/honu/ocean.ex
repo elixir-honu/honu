@@ -22,7 +22,7 @@ defmodule Honu.Ocean do
   end
 
   defp clean do
-    repo = Honu.Storage.config(:repo)
+    repo = Honu.Storage.config!(:repo)
     now = NaiveDateTime.utc_now()
 
     Honu.Attachments.Blob

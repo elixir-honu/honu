@@ -188,7 +188,7 @@ defmodule Honu.AttachmentsTest do
     end
 
     test "update_record_with_attachment/3 with has_one and file map" do
-      user = user_fixture()
+      user = user_fixture([:avatar, :documents])
       old_blob = user.avatar.blob
 
       attrs = %{
@@ -211,7 +211,7 @@ defmodule Honu.AttachmentsTest do
     end
 
     test "update_record_with_attachment/3 with has_one and Plug.Upload" do
-      user = user_fixture()
+      user = user_fixture([:avatar, :documents])
       old_blob = user.avatar.blob
 
       attrs = %{
@@ -238,7 +238,7 @@ defmodule Honu.AttachmentsTest do
     end
 
     test "update_record_with_attachment/3 with has_many and file map" do
-      user = user_fixture()
+      user = user_fixture([:avatar, :documents])
       old_blobs = Enum.map(user.documents, &Map.get(&1, :blob))
 
       attrs = %{
@@ -271,7 +271,7 @@ defmodule Honu.AttachmentsTest do
     end
 
     test "update_record_with_attachment/3 with has_many and Plug.Upload" do
-      user = user_fixture()
+      user = user_fixture([:avatar, :documents])
       old_blobs = Enum.map(user.documents, &Map.get(&1, :blob))
 
       attrs = %{
@@ -402,7 +402,7 @@ defmodule Honu.AttachmentsTest do
     end
 
     test "update_record_with_attachment/3 with has_many append" do
-      user = user_fixture() |> Map.put(:documents, [])
+      user = user_fixture([:avatar, :documents]) |> Map.put(:documents, [])
 
       attrs = %{
         "username" => "new username",
@@ -483,6 +483,97 @@ defmodule Honu.AttachmentsTest do
                |> Map.get(:pages)
                |> List.last()
                |> Map.get(:blob)
+    end
+
+    test "update_record_with_attachment/3 with has_one and no association" do
+      user = user_fixture() |> Repo.preload(avatar: :blob)
+
+      attrs = %{
+        "username" => "new username",
+        "avatar" => %{"file" => "test/support/images/elixir.png"}
+      }
+
+      result =
+        Attachments.update_record_with_attachment(
+          {user, &User.changeset_with_attachments/2},
+          attrs,
+          Attachments.attachments_names(attrs, User.attachments())
+        )
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      assert user.username == "new username"
+      assert_blob(user.avatar.blob)
+    end
+
+    test "update_record_with_attachment/3 with has_many and no association" do
+      user = user_fixture() |> Repo.preload(documents: :blob)
+
+      attrs = %{
+        "username" => "new username",
+        "documents" => [
+          %{"file" => "test/support/images/elixir.png"},
+          %{"file" => "test/support/images/elixir.png"}
+        ]
+      }
+
+      result =
+        Attachments.update_record_with_attachment(
+          {user, &User.changeset_with_attachments/2},
+          attrs,
+          Attachments.attachments_names(attrs, User.attachments())
+        )
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      assert user.username == "new username"
+
+      for document <- user.documents do
+        assert_blob(document.blob)
+      end
+    end
+
+    test "delete_record_with_attachment/2 with has_one" do
+      user = user_fixture([:avatar])
+
+      result =
+        Attachments.delete_record_with_attachment(user, [:avatar])
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      refute Repo.get(User, user.id)
+      refute_blob(user.avatar.blob)
+    end
+
+    test "delete_record_with_attachment/2 with has_many" do
+      user = user_fixture([:documents])
+
+      result =
+        Attachments.delete_record_with_attachment(user, [:documents])
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      refute Repo.get(User, user.id)
+
+      for document <- user.documents do
+        refute_blob(document.blob)
+      end
+    end
+
+    test "delete_record_with_attachment/2 with all attachments" do
+      user = user_fixture([:avatar, :documents])
+
+      result =
+        Attachments.delete_record_with_attachment(user, User.attachments())
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %User{} = user}} = result
+      refute Repo.get(User, user.id)
+      refute_blob(user.avatar.blob)
+
+      for document <- user.documents do
+        refute_blob(document.blob)
+      end
     end
   end
 end

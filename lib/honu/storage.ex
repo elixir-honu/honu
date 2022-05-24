@@ -11,6 +11,12 @@ defmodule Honu.Storage do
   def config(key, opts \\ []) do
     Application.fetch_env!(:honu, __MODULE__)
     |> Keyword.merge(opts)
+    |> Keyword.fetch(key)
+  end
+
+  def config!(key, opts \\ []) do
+    Application.fetch_env!(:honu, __MODULE__)
+    |> Keyword.merge(opts)
     |> Keyword.fetch!(key)
   end
 end

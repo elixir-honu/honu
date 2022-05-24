@@ -30,7 +30,7 @@ defmodule HonuTest.DataCase do
   def assert_blob(blob) do
     blob.key
     |> Honu.Attachments.get_attachment_by_key!(HonuTest.Repo)
-    |> Honu.Storage.config(:storage).exists?()
+    |> Honu.Storage.config!(:storage).exists?()
     |> assert()
   end
 

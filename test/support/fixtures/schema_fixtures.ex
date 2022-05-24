@@ -23,9 +23,54 @@ defmodule HonuTest.SchemaFixtures do
       |> create_record_with_attachments(Book)
 
     book
-  end  
+  end
 
-  def user_fixture(attrs \\ %{}) do
+  def user_fixture() do
+    {:ok, user} = create_record(%{"username" => "username"}, User)
+    user
+  end
+
+  def user_fixture([:avatar]), do: user_fixture(%{}, [:avatar])
+  def user_fixture([:documents]), do: user_fixture(%{}, [:documents])
+  def user_fixture([:avatar, :documents]), do: user_fixture(%{}, [:avatar, :documents])
+
+  def user_fixture(attrs) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{"username" => "username"})
+      |> create_record(User)
+
+    user
+  end
+
+  def user_fixture(attrs, [:avatar]) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{
+        "username" => "username",
+        "avatar" => %{"file" => "test/support/images/elixir.png"}
+      })
+      |> create_record_with_attachments(User)
+
+    user
+  end
+
+  def user_fixture(attrs, [:documents]) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{
+        "username" => "username",
+        "documents" => [
+          %{"file" => "test/support/images/elixir.png"},
+          %{"file" => "test/support/images/elixir.png"}
+        ]
+      })
+      |> create_record_with_attachments(User)
+
+    user
+  end
+
+  def user_fixture(attrs, [:avatar, :documents]) do
     {:ok, user} =
       attrs
       |> Enum.into(%{
@@ -41,9 +86,16 @@ defmodule HonuTest.SchemaFixtures do
     user
   end
 
+  #defp create_record(module), do: create_record(%{}, module)
+  defp create_record(attrs, module) do
+    module.__struct__()
+    |> module.changeset(attrs)
+    |> Repo.insert()
+  end
+
   defp create_record_with_attachments(attrs, module) do
     case Attachments.attachments_names(attrs, module.attachments()) do
-      [] -> raise "Have at least one attachment in attrs."
+      [] -> create_record(attrs, module)
       attn ->
         Attachments.create_record_with_attachment(
           {module.__struct__(), &module.changeset_with_attachments/2},

@@ -7,7 +7,7 @@ defmodule HonuWeb.Storage do
   # @callback url_for_direct_upload() :: {:ok, String.t()} | {:error, String.t()}
   # @callback headers_for_direct_upload() :: {:ok, map()} | {:error, String.t()}
 
-  def config(key, opts \\ []) do
+  def config!(key, opts \\ []) do
     Application.fetch_env!(:honu, __MODULE__)
     |> Keyword.merge(opts)
     |> Keyword.fetch!(key)
@@ -36,7 +36,7 @@ defmodule HonuWeb.Storage do
       key_iterations: 1000,
       key_length: 256,
       key_digest: :sha256,
-      max_age: config(:service_urls_expire_in)
+      max_age: config!(:service_urls_expire_in)
     ]
   end
 
@@ -46,7 +46,7 @@ defmodule HonuWeb.Storage do
 
   def generate_data(data, opts \\ []) do
     HonuWeb.Token.sign(
-      HonuWeb.Storage.config(:secret_key_base),
+      HonuWeb.Storage.config!(:secret_key_base),
       "blob_id",
       data,
       Keyword.merge(default_crypto_opts(), opts)
@@ -55,7 +55,7 @@ defmodule HonuWeb.Storage do
   end
 
   def generate_digest(data) do
-    :crypto.mac(:hmac, :sha256, HonuWeb.Storage.config(:secret_key_base), data)
+    :crypto.mac(:hmac, :sha256, HonuWeb.Storage.config!(:secret_key_base), data)
     |> Base.encode16(case: :lower)
   end
 
@@ -90,7 +90,7 @@ defmodule HonuWeb.Storage do
 
     case verify_token(token, purpose, opts) do
       {:ok, key} ->
-        {:ok, Honu.Attachments.get_attachment_by_key!(key, config(:repo))}
+        {:ok, Honu.Attachments.get_attachment_by_key!(key, config!(:repo))}
 
       {:error, _} ->
         {:error, "Expired"}
@@ -99,7 +99,7 @@ defmodule HonuWeb.Storage do
 
   defp verify_token(token, purpose, opts \\ []) do
     HonuWeb.Token.verify(
-      HonuWeb.Storage.config(:secret_key_base),
+      HonuWeb.Storage.config!(:secret_key_base),
       purpose,
       token,
       Keyword.merge(default_crypto_opts(), opts)

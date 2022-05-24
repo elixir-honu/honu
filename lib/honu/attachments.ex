@@ -13,7 +13,7 @@ defmodule Honu.Attachments do
     Multi.new()
     |> Multi.delete(:record, blob)
     |> Multi.run(:delete_file, fn _repo, %{record: record} ->
-      case Storage.config(:storage).delete(record) do
+      case Storage.config!(:storage).delete(record) do
         :ok -> {:ok, record}
         {:error, _} -> {:error, record}
       end
@@ -79,7 +79,7 @@ defmodule Honu.Attachments do
                 # Delete files from Storage, async
                 # Enum.each(&1, fn x -> AsyncStorage.delete(x) end)
                 Enum.filter(list, fn x -> elem(x, 0) == :error end)
-                |> Enum.each(fn x -> Storage.config(:storage).delete(x) end)
+                |> Enum.each(fn x -> Storage.config!(:storage).delete(x) end)
 
                 {:error, record}
 
@@ -96,7 +96,7 @@ defmodule Honu.Attachments do
   end
 
   defp maybe_put_blob(%{blob: %Blob{}} = attachment) do
-    Storage.config(:storage).put(attachment.blob)
+    Storage.config!(:storage).put(attachment.blob)
   end
 
   defp mark_attachments_for_deletion(record, attachments_names) do
@@ -114,7 +114,7 @@ defmodule Honu.Attachments do
     attachment =
       case Map.get(record, attachment_name) do
         att when is_list(att) -> Enum.map(att, fn x -> x.blob_id end)
-        att -> att.blob_id
+        att -> [att.blob_id]
       end
 
     from(

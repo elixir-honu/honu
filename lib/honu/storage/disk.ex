@@ -54,7 +54,7 @@ defmodule Honu.Storage.Disk do
   end
 
   def path_for(key, opts \\ []) do
-    Path.join([Storage.config(:root_dir, opts), opts[:prefix] || "", folder_for(key), key])
+    Path.join([Storage.config!(:root_dir, opts), opts[:prefix] || "", folder_for(key), key])
   end
 
   defp make_path_for(key, opts) do

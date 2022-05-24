@@ -39,11 +39,17 @@ defmodule Honu.Attachments.Attachment do
         changes
         |> Enum.filter(&(&1.action == :replace))
         |> Enum.map(&(&1.data.blob_id))
+
       _change ->
-        changeset.data
-        |> Map.get(attachment_name)
-        |> Map.get(:blob_id)
-        |> then(&[&1])
+        get_has_one_blob_id(changeset, attachment_name)
+    end
+  end
+
+  defp get_has_one_blob_id(changeset, attachment_name) do
+    case Map.get(changeset.data, attachment_name) do
+      nil -> []
+      %Ecto.Association.NotLoaded{} -> []
+      attachment -> [attachment.blob_id]
     end
   end
 end

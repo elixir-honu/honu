@@ -7,6 +7,12 @@ defmodule HonuWeb.Storage do
   # @callback url_for_direct_upload() :: {:ok, String.t()} | {:error, String.t()}
   # @callback headers_for_direct_upload() :: {:ok, map()} | {:error, String.t()}
 
+  def config(key, opts \\ []) do
+    Application.fetch_env!(:honu, __MODULE__)
+    |> Keyword.merge(opts)
+    |> Keyword.fetch(key)
+  end
+
   def config!(key, opts \\ []) do
     Application.fetch_env!(:honu, __MODULE__)
     |> Keyword.merge(opts)

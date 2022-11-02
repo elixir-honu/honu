@@ -144,7 +144,7 @@ defmodule Honu.Storage.S3 do
       Logger.error("""
       Could not find aws dependency.
       Please add :aws to your dependencies:
-          {:aws, "~> 0.10.0"}
+          {:aws, "~> 0.11"}
       """)
 
       raise "missing aws dependency"

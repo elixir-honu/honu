@@ -36,7 +36,7 @@ defmodule Honu.MixProject do
       # Web
       {:plug, "~> 1.12"},
       # Storage
-      {:aws, "~> 0.10.0", optional: true},
+      {:aws, "~> 0.11", optional: true},
       # Test / doc
       {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:ecto_sql, "~> 3.0", only: :test},

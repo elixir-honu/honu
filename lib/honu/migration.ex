@@ -18,8 +18,8 @@ defmodule Honu.Migration do
     end
   end
 
-  defmacro create_attachments_table(module) do
-    quote bind_quoted: [module: module] do
+  defmacro create_attachments_table(module, opts \\ []) do
+    quote bind_quoted: [module: module, opts: opts] do
       table_name =
         module
         |> to_string()
@@ -53,7 +53,7 @@ defmodule Honu.Migration do
             raise "Primary key #{pk} not supported."
         end
 
-        timestamps()
+        timestamps(opts)
       end
 
       create(unique_index(table_name, [:name, :record_id, :blob_id]))

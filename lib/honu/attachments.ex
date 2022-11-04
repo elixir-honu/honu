@@ -5,6 +5,22 @@ defmodule Honu.Attachments do
   alias Honu.Storage
   alias Honu.Attachments.Blob
 
+  def attached?(%Blob{}), do: true
+  def attached?(%Ecto.Association.NotLoaded{}), do: false
+  def attached?(nil), do: false
+
+  def attached?(struct) when is_struct(struct) do
+    struct
+    |> Map.get(:blob)
+    |> attached?()
+  end
+
+  def attached?(list) when is_list(list) do
+    list
+    |> Enum.map(&attached?/1)
+    |> Enum.all?()
+  end
+
   def get_attachment_by_key!(key, repo) do
     repo.get_by!(Blob, key: key)
   end

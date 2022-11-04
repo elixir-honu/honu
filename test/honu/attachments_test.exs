@@ -5,6 +5,21 @@ defmodule Honu.AttachmentsTest do
   alias HonuTest.Book
   alias HonuTest.User
 
+  test "attached?/1" do
+    import HonuTest.SchemaFixtures
+
+    user = user_fixture()
+    refute Honu.Attachments.attached?(user.avatar)
+    refute Honu.Attachments.attached?(user.documents)
+
+    refute Honu.Attachments.attached?(Map.put(user, :avatar, nil))
+    refute Honu.Attachments.attached?(Map.put(user, :documents, []))
+
+    user_with_attachments = user_fixture([:avatar, :documents])
+    assert Honu.Attachments.attached?(user_with_attachments.avatar)
+    assert Honu.Attachments.attached?(user_with_attachments.documents)
+  end
+
   test "compute_checksum_in_chunks/1" do
     checksum = Attachments.compute_checksum_in_chunks("test/support/images/elixir.png")
     assert checksum == "630523f18b6f5b4d56fa3e1b3510c2ac"

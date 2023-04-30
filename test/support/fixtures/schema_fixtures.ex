@@ -86,7 +86,7 @@ defmodule HonuTest.SchemaFixtures do
     user
   end
 
-  #defp create_record(module), do: create_record(%{}, module)
+  # defp create_record(module), do: create_record(%{}, module)
   defp create_record(attrs, module) do
     module.__struct__()
     |> module.changeset(attrs)
@@ -95,7 +95,9 @@ defmodule HonuTest.SchemaFixtures do
 
   defp create_record_with_attachments(attrs, module) do
     case Attachments.attachments_names(attrs, module.attachments()) do
-      [] -> create_record(attrs, module)
+      [] ->
+        create_record(attrs, module)
+
       attn ->
         Attachments.create_record_with_attachment(
           {module.__struct__(), &module.changeset_with_attachments/2},
@@ -103,15 +105,18 @@ defmodule HonuTest.SchemaFixtures do
           attn
         )
         |> Repo.transaction()
-      |> case do
-        {:ok, %{record: record}} ->
-          record = Enum.reduce(module.attachments(), record, fn att, acc ->
-            Repo.preload(acc, [{att, :blob}], force: true)
-          end)
+        |> case do
+          {:ok, %{record: record}} ->
+            record =
+              Enum.reduce(module.attachments(), record, fn att, acc ->
+                Repo.preload(acc, [{att, :blob}], force: true)
+              end)
 
-          {:ok, record}
-        {:error, :record, %Ecto.Changeset{} = changeset, _} -> {:error, changeset}
-      end
+            {:ok, record}
+
+          {:error, :record, %Ecto.Changeset{} = changeset, _} ->
+            {:error, changeset}
+        end
     end
   end
 end

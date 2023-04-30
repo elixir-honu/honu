@@ -10,8 +10,7 @@ defmodule HonuTest.Book do
   schema "books" do
     field :title, :string
 
-    has_many_attached :pages, BookAttachment,
-      preload_order: [asc: :page_number]
+    has_many_attached(:pages, BookAttachment, preload_order: [asc: :page_number])
 
     timestamps()
   end

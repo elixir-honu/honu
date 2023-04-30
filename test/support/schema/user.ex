@@ -10,8 +10,8 @@ defmodule HonuTest.User do
   schema "users" do
     field :username, :string
 
-    has_one_attached :avatar, UserAttachment
-    has_many_attached :documents, UserAttachment
+    has_one_attached(:avatar, UserAttachment)
+    has_many_attached(:documents, UserAttachment)
 
     timestamps()
   end
@@ -34,7 +34,7 @@ defmodule HonuTest.User do
       attrs,
       [
         {:avatar, &UserAttachment.changeset/2},
-        {:documents, &UserAttachment.changeset/2},
+        {:documents, &UserAttachment.changeset/2}
       ]
     )
   end

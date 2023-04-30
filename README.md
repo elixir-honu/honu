@@ -13,7 +13,7 @@ The package can be installed by adding `honu` to your list of dependencies in `m
 ```elixir
 def deps do
   [
-    {:honu, "~> 0.2.0"}
+    {:honu, "~> 0.3.0"}
   ]
 end
 ```

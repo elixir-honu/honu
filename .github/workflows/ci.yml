@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  mix_test:
+    name: mix test (OTP ${{matrix.otp}} | Elixir ${{matrix.elixir}})
+
+    env:
+      MIX_ENV: test
+      CI: true
+
+    services:
+      db:
+        image: postgres:14
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        otp: ['23.3.4.18', '24.3.4.11', '25.3.1']
+        elixir: ['1.12.3', '1.13.4', '1.14.4']
+        include:
+          - otp: 22.3.4.26
+            elixir: 1.12.3
+
+          - otp: 25.3.1
+            elixir: 1.14.4
+            lint: true
+
+        exclude:
+          - otp: 25.3.1
+            elixir: 1.12.3
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+
+      - name: Restore deps and _build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}
+
+      - name: Install dependencies
+        run: mix deps.get --only test
+
+      - name: Remove compiled application files
+        run: mix clean
+
+      - name: Compiles without warnings
+        run: mix compile --warnings-as-errors
+        if: ${{ matrix.lint }}
+
+      # - name: Check Formatting
+      #   run: mix format --check-formatted
+      #   if: ${{ matrix.lint }}
+
+      - name: Run tests
+        run: mix test

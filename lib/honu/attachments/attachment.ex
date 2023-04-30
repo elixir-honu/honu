@@ -5,12 +5,16 @@ defmodule Honu.Attachments.Attachment do
   alias Honu.Attachments.AttachmentMap
   alias Honu.Attachments.Blob
 
-  def attachments_changeset(changeset, attrs, attachments_names) do
-    # TODO: Support both atom and string in map
-    #       Currently only string keys are supported
-    Enum.reduce(attachments_names, changeset, fn {name, func}, cset ->
-      attachment_changeset(cset, attrs, {to_string(name), func})
-    end)
+  def attachments_changeset(changeset, attrs, attachments_names) when is_list(attachments_names) do
+    if convert?(attrs) do
+      Enum.reduce(attachments_names, changeset, fn {name, func}, cset ->
+        attachment_changeset(cset, attrs, {name, func})
+      end)
+    else
+      Enum.reduce(attachments_names, changeset, fn {name, func}, cset ->
+        attachment_changeset(cset, attrs, {Atom.to_string(name), func})
+      end)
+    end
   end
 
   defp attachment_changeset(changeset, attrs, {attachment_name, changeset_func})
@@ -20,9 +24,9 @@ defmodule Honu.Attachments.Attachment do
 
       changeset
       |> cast(Map.put(attrs, attachment_name, attachments), [])
-      |> cast_assoc(String.to_atom(attachment_name), with: changeset_func)
+      |> cast_assoc(attachment_name |> to_string() |> String.to_existing_atom(), with: changeset_func)
       |> prepare_changes(fn changeset ->
-        blob_ids = get_blob_ids(changeset, String.to_atom(attachment_name))
+        blob_ids = get_blob_ids(changeset, attachment_name |> to_string() |> String.to_existing_atom())
         query = from(b in Blob, where: b.id in ^blob_ids)
         changeset.repo.update_all(query, set: [deleted_at: NaiveDateTime.utc_now()])
 
@@ -40,6 +44,8 @@ defmodule Honu.Attachments.Attachment do
         |> Enum.filter(&(&1.action == :replace))
         |> Enum.map(&(&1.data.blob_id))
 
+      nil -> []
+
       _change ->
         get_has_one_blob_id(changeset, attachment_name)
     end
@@ -51,5 +57,12 @@ defmodule Honu.Attachments.Attachment do
       %Ecto.Association.NotLoaded{} -> []
       attachment -> [attachment.blob_id]
     end
+  end
+
+  defp convert?(attrs) do
+    attrs
+    |> Map.keys()
+    |> List.first()
+    |> is_atom()
   end
 end

@@ -20,11 +20,20 @@ end
 defimpl Honu.Attachments.AttachmentMap, for: Map do
   def build(%{"file" => file} = attrs, attachment_name) do
     %{
-      "name" => attachment_name,
+      "name" => to_string(attachment_name),
       "blob" => Honu.Attachments.Blob.build(file)
     }
     |> Map.merge(Map.delete(attrs, "file"))
     |> Map.delete("id")
+  end
+
+  def build(%{file: file} = attrs, attachment_name) do
+    %{
+      name: to_string(attachment_name),
+      blob: Honu.Attachments.Blob.build(file)
+    }
+    |> Map.merge(Map.delete(attrs, :file))
+    |> Map.delete(:id)
   end
 
   def build(%{"0" => map} = attrs, attachment_name) when is_map(map) do
@@ -35,8 +44,20 @@ defimpl Honu.Attachments.AttachmentMap, for: Map do
     end)
   end
 
-  def build(attrs, attachment_name) do
-    Map.merge(%{"name" => attachment_name}, attrs)
+  def build(%{0 => map} = attrs, attachment_name) when is_map(map) do
+    Enum.reduce(attrs, %{}, fn attachment, acc ->
+      attachment
+      |> build_one_with_index(attachment_name)
+      |> Map.merge(acc)
+    end)
+  end
+
+  def build(%{id: _} = attrs, attachment_name) do
+    Map.merge(%{name: to_string(attachment_name)}, attrs)
+  end
+
+  def build(%{"id" => _} = attrs, attachment_name) do
+    Map.merge(%{"name" => to_string(attachment_name)}, attrs)
   end
 
   defp build_one_with_index({id, attrs}, attachment_name) when is_map(attrs) do

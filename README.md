@@ -1,5 +1,7 @@
 # Honu
 
+[![Hex.pm](https://img.shields.io/hexpm/v/honu)](https://hex.pm/packages/honu) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/honu/)
+
 https://en.wikipedia.org/wiki/Green_sea_turtle#Taxonomy
 
 **A WIP file upload and attachment library for Ecto**
@@ -11,7 +13,7 @@ The package can be installed by adding `honu` to your list of dependencies in `m
 ```elixir
 def deps do
   [
-    {:honu, "~> 0.1.0"}
+    {:honu, "~> 0.2.0"}
   ]
 end
 ```

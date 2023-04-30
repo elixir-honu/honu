@@ -162,6 +162,38 @@ defmodule Honu.AttachmentsTest do
       end
     end
 
+    test "create_record_with_attachment/3 with has_many, file map (atom) and extra attribute in attachment" do
+      attrs = %{
+        title: "title",
+        pages: %{
+          0 => %{
+            file: "test/support/images/elixir.png",
+            page_number: 1
+          },
+          1 => %{
+            file: "test/support/images/elixir.png",
+            page_number: 2
+          }
+        }
+      }
+
+      result =
+        Attachments.create_record_with_attachment(
+          {%Book{}, &Book.changeset_with_attachments/2},
+          attrs,
+          Attachments.attachments_names(attrs, Book.attachments())
+        )
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %Book{} = book}} = result
+      assert book.title == "title"
+      assert length(book.pages) == 2
+
+      for page <- book.pages do
+        assert_blob(page.blob)
+      end
+    end
+
     test "create_record_with_attachment/3 with has_many, Plug.Upload and extra attribute in attachment" do
       attrs = %{
         "title" => "title",
@@ -474,6 +506,52 @@ defmodule Honu.AttachmentsTest do
               filename: "elixir.png"
             },
             "page_number" => 1
+          }
+        }
+      }
+
+      result =
+        Attachments.update_record_with_attachment(
+          {book, &Book.changeset_with_attachments/2},
+          attrs,
+          Attachments.attachments_names(attrs, Book.attachments())
+        )
+        |> Repo.transaction()
+
+      assert {:ok, %{record: %Book{} = book}} = result
+      assert book.title == "new title"
+      assert length(book.pages) == 2
+      assert_blob(List.first(book.pages).blob)
+      refute_blob(old_blob)
+
+      assert old_page.blob ==
+               book
+               |> Repo.preload([pages: :blob], force: true)
+               |> Map.get(:pages)
+               |> List.last()
+               |> Map.get(:blob)
+    end
+
+    test "update_record_with_attachment/3 with has_many, update attribute only (atom)" do
+      book = book_fixture()
+      old_page = book.pages |> List.first()
+      old_blob = book.pages |> List.last() |> Map.get(:blob)
+
+      attrs = %{
+        title: "new title",
+        pages: %{
+          0 => %{
+            id: List.first(book.pages).id,
+            page_number: 2
+          },
+          1 => %{
+            id: List.last(book.pages).id,
+            file: %Plug.Upload{
+              path: "test/support/images/elixir.png",
+              content_type: "image/png",
+              filename: "elixir.png"
+            },
+            page_number: 1
           }
         }
       }

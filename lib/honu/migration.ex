@@ -22,10 +22,9 @@ defmodule Honu.Migration do
     quote bind_quoted: [module: module, opts: opts] do
       table_name =
         module
-        |> to_string()
-        |> String.split(".")
+        |> Module.split()
         |> List.last()
-        |> String.downcase()
+        |> Macro.underscore()
         |> (&"honu_#{&1}_attachments").()
 
       record_table = String.to_atom(module.__schema__(:source))

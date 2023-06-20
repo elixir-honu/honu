@@ -78,9 +78,7 @@ defmodule MyApp.Accounts.User do
   schema "users" do
     field :username, :string
 
-    has_one :avatar, UserAttachment,
-      foreign_key: :record_id,
-      where: [name: "avatar"]
+    has_one_attached :avatar, UserAttachment
 
     timestamps()
   end
@@ -109,8 +107,10 @@ Finally it's possible to create a user with an avatar with the following functio
 ```elixir
 def create_user_with_attachments(attrs \\ %{}) do
   case Attachments.attachments_names(attrs, User.attachments()) do
-    attn when attn == [] -> create_user(attrs)
-    attn when attn != [] ->
+    [] ->
+      create_user(attrs)
+
+    attn ->
       Attachments.create_record_with_attachment(
         {%User{}, &User.changeset_with_attachments/2},
         attrs,

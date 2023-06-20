@@ -2,7 +2,7 @@ defmodule Honu.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elixir-honu/honu"
-  @version "0.3.1"
+  @version "0.3.2"
 
   def project do
     [

@@ -20,12 +20,14 @@ defmodule Honu.Migration do
 
   defmacro create_attachments_table(module, opts \\ []) do
     quote bind_quoted: [module: module, opts: opts] do
-      table_name =
+      table_name_default =
         module
         |> Module.split()
         |> List.last()
         |> Macro.underscore()
-        |> (&"honu_#{&1}_attachments").()
+
+      {table_name, opts} = Keyword.pop(opts, :table_name, table_name_default)
+      table_name = "honu_#{table_name}_attachments"
 
       record_table = String.to_atom(module.__schema__(:source))
 
